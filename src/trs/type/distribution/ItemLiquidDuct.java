@@ -23,9 +23,10 @@ import mindustry.world.blocks.distribution.*;
 import mindustry.world.blocks.liquid.Conduit;
 import mindustry.world.meta.*;
 
-public class ItemLiquidDuct extends Conduit{
+public class ItemLiquidDuct extends Conduit {
 
     static final float rotatePad = 6, hpad = rotatePad / 2f / 4f;
+    static final float[][] rotateOffsets = { { hpad, hpad }, { -hpad, hpad }, { -hpad, -hpad }, { hpad, -hpad } };
 
     public float speed = 5f;
     public float maxPressure = 2.5f;
@@ -58,36 +59,37 @@ public class ItemLiquidDuct extends Conduit{
         priority = TargetPriority.transport;
         envEnabled = Env.space | Env.terrestrial | Env.underwater;
     }
+
     @Override
-    public void load(){
+    public void load() {
         super.load();
 
         liquidr = liquidRegion;
-        borderRegion = Core.atlas.find(name+"-border");
+        borderRegion = Core.atlas.find(name + "-border");
         rotateRegions = new TextureRegion[4][2][animationFrames];
-        BuildRegion = Core.atlas.find("trs-DrawBuild"+this.size+"x"+this.size);
+        BuildRegion = Core.atlas.find("trs-DrawBuild" + this.size + "x" + this.size);
 
-        if(renderer != null){
+        if (renderer != null) {
             float pad = rotatePad;
             var frames = renderer.getFluidFrames();
 
-            for(int rot = 0; rot < 4; rot++){
-                for(int fluid = 0; fluid < 2; fluid++){
-                    for(int frame = 0; frame < animationFrames; frame++){
+            for (int rot = 0; rot < 4; rot++) {
+                for (int fluid = 0; fluid < 2; fluid++) {
+                    for (int frame = 0; frame < animationFrames; frame++) {
                         TextureRegion base = frames[fluid][frame];
                         TextureRegion result = new TextureRegion();
                         result.set(base);
 
-                        if(rot == 0){
+                        if (rot == 0) {
                             result.setX(result.getX() + pad);
                             result.setHeight(result.height - pad);
-                        }else if(rot == 1){
+                        } else if (rot == 1) {
                             result.setWidth(result.width - pad);
                             result.setHeight(result.height - pad);
-                        }else if(rot == 2){
+                        } else if (rot == 2) {
                             result.setWidth(result.width - pad);
                             result.setY(result.getY() + pad);
-                        }else{
+                        } else {
                             result.setX(result.getX() + pad);
                             result.setY(result.getY() + pad);
                         }
@@ -99,26 +101,68 @@ public class ItemLiquidDuct extends Conduit{
         }
 
     }
+
+    public static void drawTiledFrames(int size, float x, float y, float padLeft, float padRight, float padTop,float padBottom, Liquid liquid, float alpha) {
+        TextureRegion region = renderer.fluidFrames[liquid.gas ? 1 : 0][liquid.getAnimationFrame()];
+        TextureRegion toDraw = Tmp.tr1;
+
+        float leftBounds = size / 2f * tilesize - padRight;
+        float bottomBounds = size / 2f * tilesize - padTop;
+        Color color = Tmp.c1.set(liquid.color).a(1f);
+
+        for (int sx = 0; sx < size; sx++) {
+            for (int sy = 0; sy < size; sy++) {
+                float relx = sx - (size - 1) / 2f, rely = sy - (size - 1) / 2f;
+
+                toDraw.set(region);
+
+                // truncate region if at border
+                float rightBorder = relx * tilesize + padLeft, topBorder = rely * tilesize + padBottom;
+                float squishX = rightBorder + tilesize / 2f - leftBounds,
+                        squishY = topBorder + tilesize / 2f - bottomBounds;
+                float ox = 0f, oy = 0f;
+
+                if (squishX >= 8 || squishY >= 8)
+                    continue;
+
+                // cut out the parts that don't fit inside the padding
+                if (squishX > 0) {
+                    toDraw.setWidth(toDraw.width - squishX * 4f);
+                    ox = -squishX / 2f;
+                }
+
+                if (squishY > 0) {
+                    toDraw.setY(toDraw.getY() + squishY * 4f);
+                    oy = -squishY / 2f;
+                }
+
+                Drawf.liquid(toDraw, x + rightBorder + ox, y + topBorder + oy, alpha, color);
+            }
+        }
+    }
+
     @Override
-    public void setStats(){
+    public void setStats() {
         super.setStats();
         stats.add(Stat.itemsMoved, 60f / speed, StatUnit.itemsSecond);
     }
 
     @Override
-    public void init(){
+    public void init() {
         super.init();
 
-        if(bridgeReplacement == null || !(bridgeReplacement instanceof DuctBridge || bridgeReplacement instanceof ItemBridge)) bridgeReplacement = Blocks.ductBridge;
-
+        if (bridgeReplacement == null
+                || !(bridgeReplacement instanceof DuctBridge || bridgeReplacement instanceof ItemBridge))
+            bridgeReplacement = Blocks.ductBridge;
 
     }
 
     @Override
-    public void drawPlanRegion(BuildPlan plan, Eachable<BuildPlan> list){
+    public void drawPlanRegion(BuildPlan plan, Eachable<BuildPlan> list) {
         int[] bits = getTiling(plan, list);
 
-        if(bits == null) return;
+        if (bits == null)
+            return;
 
         Draw.scl(bits[1], bits[2]);
         Draw.alpha(0.5f);
@@ -129,26 +173,33 @@ public class ItemLiquidDuct extends Conduit{
     }
 
     @Override
-    public boolean blends(Tile tile, int rotation, int otherx, int othery, int otherrot, Block otherblock){
-        if(!armored){
-            return (otherblock.outputsItems() || (lookingAt(tile, rotation, otherx, othery, otherblock) && otherblock.hasItems))
+    public boolean blends(Tile tile, int rotation, int otherx, int othery, int otherrot, Block otherblock) {
+        if (!armored) {
+            return (otherblock.outputsItems()
+                    || (lookingAt(tile, rotation, otherx, othery, otherblock) && otherblock.hasItems))
                     && lookingAtEither(tile, rotation, otherx, othery, otherrot, otherblock);
-        }else{
-            return (otherblock.outputsItems() && blendsArmored(tile, rotation, otherx, othery, otherrot, otherblock)) || (lookingAt(tile, rotation, otherx, othery, otherblock) && otherblock.hasItems);
+        } else {
+            return (otherblock.outputsItems() && blendsArmored(tile, rotation, otherx, othery, otherrot, otherblock))
+                    || (lookingAt(tile, rotation, otherx, othery, otherblock) && otherblock.hasItems);
         }
     }
 
     @Override
-    public TextureRegion[] icons(){
-        return new TextureRegion[]{botRegions[0], topRegions[0]};
+    public TextureRegion[] icons() {
+        return new TextureRegion[] { botRegions[0], topRegions[0] };
     }
 
     @Override
-    public void handlePlacementLine(Seq<BuildPlan> plans){
-        if(bridgeReplacement == null) return;
-        if(bridgeReplacement instanceof ItemBridge bridge) Placement.calculateBridges(plans, bridge);
-        if(bridgeReplacement instanceof DuctBridge bridge) Placement.calculateBridges(plans, bridge, false, b -> b instanceof Duct || b instanceof StackConveyor || b instanceof Conveyor);
+    public void handlePlacementLine(Seq<BuildPlan> plans) {
+        if (bridgeReplacement == null)
+            return;
+        if (bridgeReplacement instanceof ItemBridge bridge)
+            Placement.calculateBridges(plans, bridge);
+        if (bridgeReplacement instanceof DuctBridge bridge)
+            Placement.calculateBridges(plans, bridge, false,
+                    b -> b instanceof Duct || b instanceof StackConveyor || b instanceof Conveyor);
     }
+
     public class ItemLiquidDuctBuild extends ConduitBuild {
         public float pressure;
         public float progress;
@@ -159,84 +210,120 @@ public class ItemLiquidDuct extends Conduit{
         public @Nullable Building nextc;
         public float buildOffset;
 
-
         @Override
-        public void draw(){
-            /*buildOffset = Mathf.approachDelta(buildOffset,3f,0.02f);
-                if (this.buildOffset != 3) {
-                    Draw.z(Layer.blockUnder - 0.01f);
-                    Draw.rect(BuildRegion, x - buildOffset, y - buildOffset);
-                    Draw.rect(BuildRegion, x + buildOffset, y - buildOffset, 90);
-                    Draw.rect(BuildRegion, x + buildOffset, y + buildOffset, 180);
-                    Draw.rect(BuildRegion, x - buildOffset, y + buildOffset, 270);
-                }*/
-            Building l = left(), ri = right(), f = front(), b = back();
-            float rotation = rotdeg();
+        public void draw() {
             int r = this.rotation;
 
-            //draw extra ducts facing this one for tiling purposes
-            for(int i = 0; i < 4; i++){
-                if((blending & (1 << i)) != 0){
+            // draw extra conduits facing this one for tiling purposes
+            
+            Draw.z(Layer.blockUnder);
+            for (int i = 0; i < 4; i++) {
+                if ((blending & (1 << i)) != 0) {
                     int dir = r - i;
-                    float rot = i == 0 ? rotation : (dir)*90;
-                    drawAt(x + Geometry.d4x(dir) * tilesize*0.75f, y + Geometry.d4y(dir) * tilesize*0.75f, 0, rot, i != 0 ? SliceMode.bottom : SliceMode.top);
+                    drawAt(x + Geometry.d4x(dir) * tilesize * 0.75f, y + Geometry.d4y(dir) * tilesize * 0.75f, 0,
+                            i == 0 ? r : dir, i != 0 ? SliceMode.bottom : SliceMode.top);
                 }
             }
 
-            //draw item
-            if(current != null){
-                Draw.z(Layer.blockUnder + 0.2f);
-                Tmp.v1.set(Geometry.d4x(recDir) * tilesize / 2f, Geometry.d4y(recDir) * tilesize / 2f)
-                        .lerp(Geometry.d4x(r) * tilesize / 2f, Geometry.d4y(r) * tilesize / 2f,
-                                Mathf.clamp((progress + 1f) / 2f));
-
-                Draw.rect(current.fullIcon, x + Tmp.v1.x, y + Tmp.v1.y, itemSize, itemSize);
-            }
+            Draw.z(Layer.block);
 
             Draw.scl(xscl, yscl);
-            drawAt(x, y, blendbits, rotation, SliceMode.none);
-            if (f==null) Draw.rect(borderRegion,x,y,rotdeg());
-            if (b==null && l == null && ri == null) Draw.rect(borderRegion,x,y,rotdeg()-180);
+            drawAt(x, y, blendbits, r, SliceMode.none);
             Draw.reset();
+
+            if (capped && capRegion.found())
+                Draw.rect(capRegion, x, y, rotdeg());
+            if (backCapped && capRegion.found())
+                Draw.rect(capRegion, x, y, rotdeg() + 180);
         }
 
         @Override
-        public void payloadDraw(){
+        public void payloadDraw() {
             Draw.rect(fullIcon, x, y);
         }
 
-        protected void drawAt(float x, float y, int bits, float rotation, SliceMode slice){
-            Draw.z(Layer.blockUnder);
-            Draw.rect(sliced(botRegions[bits], slice), x, y, rotation);
-
-            Draw.z(Layer.blockUnder +0.0001f);
-            Draw.color(transparentColor);
+        protected void drawAt(float x, float y, int bits, int rotation, SliceMode slice){
+            float angle = rotation * 90f;
+            Draw.color(botColor);
+            Draw.rect(sliced(botRegions[bits], slice), x, y, angle);
 
             int offset = yscl == -1 ? 3 : 0;
 
             int frame = liquids.current().getAnimationFrame();
             int gas = liquids.current().gas ? 1 : 0;
             float ox = 0f, oy = 0f;
-            int wrapRot = (int)(rotation + offset) % 4;
+            int wrapRot = (rotation + offset) % 4;
+            TextureRegion liquidr = bits == 1 && padCorners ? rotateRegions[wrapRot][gas][frame] : renderer.fluidFrames[gas][frame];
+
+            if(bits == 1 && padCorners){
+                ox = rotateOffsets[wrapRot][0];
+                oy = rotateOffsets[wrapRot][1];
+            }
 
             //the drawing state machine sure was a great design choice with no downsides or hidden behavior!!!
             float xscl = Draw.xscl, yscl = Draw.yscl;
             Draw.scl(1f, 1f);
-            Drawf.liquid(sliced(liquidr, slice), x + ox, y + oy, smoothLiquid, liquids.current().color.write(Tmp.c1).a(1f));
+            if (bits == 0) {
+                if (rotation == 0 || rotation == 2)
+                    drawTiledFrames(size, x, y, 0, 0, 0.75f, 0.75f, liquids.current(), smoothLiquid);
+                else drawTiledFrames(size, x, y, 0.75f, 0.75f, 0, 0, liquids.current(), smoothLiquid);
+            } else if (bits == 2) {
+                if (rotation == 2) {
+  
+                    if (left() != null)
+                        drawTiledFrames(size, x, y, 0, 0, 0.75f, 0, liquids.current(), smoothLiquid);
+                    else {
+                        if (right() !=null)
+                            drawTiledFrames(size, x, y, 0, 0, 0, 0.75f, liquids.current(), smoothLiquid);
+                    }
+                        
+                }else if (rotation == 1) {
+
+                    if (left() != null)
+                        drawTiledFrames(size, x, y, 0, 0.75f, 0, 0, liquids.current(), smoothLiquid);
+                    else {
+                        if (right() != null)
+                            drawTiledFrames(size, x, y, 0.75f, 0, 0, 0, liquids.current(), smoothLiquid);
+                    }
+
+                } else if (rotation == 3) {
+
+                    if (left() != null)
+                        drawTiledFrames(size, x, y, 0.75f, 0, 0, 0, liquids.current(), smoothLiquid);
+                    else {
+                        if (right() != null)
+                            drawTiledFrames(size, x, y, 0, 0.75f, 0, 0, liquids.current(), smoothLiquid);
+                    }
+
+                } else if (rotation == 0) {
+
+                    if (left() != null)
+                        drawTiledFrames(size, x, y, 0, 0, 0, 0.75f, liquids.current(), smoothLiquid);
+                    else {
+                        if (right() != null)
+                            drawTiledFrames(size, x, y, 0, 0, 0.75f, 0, liquids.current(), smoothLiquid);
+                    }
+
+                }
+            }else if(bits == 0){
+
+            }else{
+                Drawf.liquid(sliced(liquidr, slice), x + ox, y + oy, smoothLiquid,liquids.current().color.write(Tmp.c1).a(1f));
+            }
             Draw.scl(xscl, yscl);
 
-            Draw.color();
-            Draw.z(Layer.block-0.01f);
-
-            Draw.rect(sliced(topRegions[bits], slice), x, y, rotation);
+            Draw.rect(sliced(topRegions[bits], slice), x, y, angle);
         }
 
         @Override
         public void updateTile() {
-            @Nullable Building l = left(), ri = right(), f = front(), b = back();
+            @Nullable
+            Building l = left(), ri = right(), f = front(), b = back();
             smoothLiquid = Mathf.lerpDelta(smoothLiquid, liquids.currentAmount() / liquidCapacity, 0.05f);
             progress += edelta() / speed * 2f;
-            if (liquids.currentAmount() > 0.0001f && timer(timerFlow, 1) /*&& (pressure>0 && pressure <= maxPressure)*/) {
+            if (liquids.currentAmount() > 0.0001f && timer(timerFlow, 1) /*
+                                                                          * && (pressure>0 && pressure <= maxPressure)
+                                                                          */) {
                 moveLiquidForward(leaks, liquids.current());
             }
             if (current != null && next != null) {
@@ -254,32 +341,36 @@ public class ItemLiquidDuct extends Conduit{
         }
 
         @Override
-        public boolean acceptItem(Building source, Item item){
+        public boolean acceptItem(Building source, Item item) {
             return current == null && items.total() == 0 &&
                     (armored ?
-                            //armored acceptance
-                            ((source.block.rotate && source.front() == this && source.block.hasItems && source.block.isDuct) ||
-                                    Edges.getFacingEdge(source.tileOn(), tile).relativeTo(tile) == rotation) :
-                            //standard acceptance - do not accept from front
-                            !(source.block.rotate && next == source) && Edges.getFacingEdge(source.tile, tile) != null && Math.abs(Edges.getFacingEdge(source.tile, tile).relativeTo(tile.x, tile.y) - rotation) != 2
-                    );
+                    // armored acceptance
+                            ((source.block.rotate && source.front() == this && source.block.hasItems
+                                    && source.block.isDuct) ||
+                                    Edges.getFacingEdge(source.tileOn(), tile).relativeTo(tile) == rotation)
+                            :
+                            // standard acceptance - do not accept from front
+                            !(source.block.rotate && next == source) && Edges.getFacingEdge(source.tile, tile) != null
+                                    && Math.abs(Edges.getFacingEdge(source.tile, tile).relativeTo(tile.x, tile.y)
+                                            - rotation) != 2);
         }
 
         @Override
-        public int removeStack(Item item, int amount){
+        public int removeStack(Item item, int amount) {
             int removed = super.removeStack(item, amount);
-            if(item == current) current = null;
+            if (item == current)
+                current = null;
             return removed;
         }
 
         @Override
-        public void handleStack(Item item, int amount, Teamc source){
+        public void handleStack(Item item, int amount, Teamc source) {
             super.handleStack(item, amount, source);
             current = item;
         }
 
         @Override
-        public void handleItem(Building source, Item item){
+        public void handleItem(Building source, Item item) {
             current = item;
             progress = -1f;
             recDir = relativeToEdge(source.tile);
@@ -288,7 +379,7 @@ public class ItemLiquidDuct extends Conduit{
         }
 
         @Override
-        public void onProximityUpdate(){
+        public void onProximityUpdate() {
             super.onProximityUpdate();
 
             int[] bits = buildBlending(tile, rotation, null, true);
@@ -305,20 +396,20 @@ public class ItemLiquidDuct extends Conduit{
         }
 
         @Override
-        public byte version(){
+        public byte version() {
             return 1;
         }
 
         @Override
-        public void write(Writes write){
+        public void write(Writes write) {
             super.write(write);
             write.b(recDir);
         }
 
         @Override
-        public void read(Reads read, byte revision){
+        public void read(Reads read, byte revision) {
             super.read(read, revision);
-            if(revision >= 1){
+            if (revision >= 1) {
                 recDir = read.b();
             }
             current = items.first();

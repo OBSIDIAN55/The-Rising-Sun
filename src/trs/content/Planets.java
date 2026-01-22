@@ -32,7 +32,6 @@ public class Planets {
             launchCapacityMultiplier = 0.5f;
             sectorSeed = 2;
             allowWaves = true;
-            allowWaveSimulation = false;
             allowSectorInvasion = true;
             enemyCoreSpawnReplace = true;
             allowLaunchLoadout = true;

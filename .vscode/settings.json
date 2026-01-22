@@ -1,4 +1,15 @@
 {
     "java.configuration.updateBuildConfiguration": "automatic",
-    "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx4G -Xms100m -Xlog:disable"
+    "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx4G -Xms100m -Xlog:disable",
+    "java.completion.guessMethodArguments": "auto",
+    "java.completion.overwrite": true,
+    "java.imports.gradle.enabled": true,
+    "java.imports.maven.enabled": true,
+    "java.imports.guessImports": true,
+    "java.imports.insertMissingImports": true,
+    "java.referencesCodeLens.enabled": true,
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "editor.formatOnType": true,
+    "java.format.settings.profile": "GoogleStyle",
 }

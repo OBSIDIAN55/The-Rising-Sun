@@ -1,16 +1,15 @@
 package trs.content;
 
 import static mindustry.type.ItemStack.with;
+import static trs.trsMod.debug;
 
 import arc.graphics.Color;
 import arc.struct.Seq;
-import arc.util.OS;
 import mindustry.content.*;
 import mindustry.entities.bullet.*;
 import mindustry.entities.bullet.ContinuousFlameBulletType;
 import mindustry.entities.pattern.ShootAlternate;
 import mindustry.entities.pattern.ShootBarrel;
-import mindustry.gen.Sounds;
 import mindustry.graphics.Pal;
 import mindustry.type.Category;
 import mindustry.type.ItemStack;
@@ -42,7 +41,7 @@ import trs.type.defense.walls.ExacrimWall;
 import trs.type.distribution.*;
 import trs.type.power.LargeVariableNode;
 import trs.type.power.VariableNode;
-import trs.type.test.TestGenericCrafter;
+import trs.type.test.ExpandableStorageBlock;
 import trs.type.units.AnimatedUnitAssembler;
 
 public class trsBlocks {
@@ -51,6 +50,8 @@ public class trsBlocks {
             Case,incedent,Signal,
             perseverance,fortitude,stability,a,b,c,col,
             cellFactory,
+    //storage
+            testExpCVault,
     //fractions
     acronyx,arha,hronos,phoenix,
     //prod
@@ -71,7 +72,7 @@ public class trsBlocks {
     //turrets
         splash,artery, wire,ash,lucidity,hallucination,
     //power
-        variableNode,largeVariableNode,carbonBiomassReactor,
+        variableNode,largeVariableNode,carbonBiomassReactor,zincGenerator,
     //units parts
         componentsFactory,clinovalvePayloadRouter,clinovalvePayloadConveyor,universalCollectorUnits,
         detailBody, exacrimCatalyst,modularTrunk,shockMechanism,skeleton,
@@ -206,9 +207,7 @@ public class trsBlocks {
                         glowScale = 5f;
                         glowIntensity = 2f;
                     }},
-                    new DrawRegion("-r"){{
-                        layer = 29.99f;
-                    }}
+                    new DrawDefault()
             );
         }};
         fortitude = new BuildTurretRegenGeneratorCoreBlock("fortitude"){{
@@ -249,9 +248,7 @@ public class trsBlocks {
                         glowScale = 5f;
                         glowIntensity = 2f;
                     }},
-                    new DrawRegion("-r"){{
-                            layer = 29.99f;
-                        }}
+                    new DrawDefault()
             );
         }};
         stability = new BuildTurretRegenGeneratorCoreBlock("stability"){{
@@ -303,11 +300,16 @@ public class trsBlocks {
                         glowScale = 5f;
                         glowIntensity = 2f;
                     }},
-                    new DrawRegion("-r"){{
-                        layer = 29.99f;
-                    }}
+                    new DrawDefault()
             );
         }};
+
+        testExpCVault = new ExpandableStorageBlock("test"){{
+            requirements(Category.effect, with(Items.graphite, 12, Items.silicon, 8, Items.lead, 8));
+            size=4;
+            itemCapacity = 100;
+        }};
+
         bariumLightSource = new ChemicalLightSource("bariumLightSource"){{
             requirements(Category.effect, with(Items.graphite, 12, Items.silicon, 8, Items.lead, 8));
             squareSprite = true;
@@ -316,7 +318,7 @@ public class trsBlocks {
             sourceLightColor = Color.valueOf("96037c");
         }};
         alarmSystem = new GenericCrafter("alarm-system"){{
-            requirements(Category.crafting, with(Items.graphite, 12, Items.silicon, 8, Items.lead, 8));
+            requirements(Category.effect, with(Items.graphite, 12, Items.silicon, 8, Items.lead, 8));
             size = 2;
             drawer = new DrawMulti(new DrawDefault(), new DrawGlowRegion(){{
                 suffix = "-rotator";
@@ -729,9 +731,6 @@ public class trsBlocks {
             canOverdrive = false;
             size = 2;
         }};
-        testGen = new TestGenericCrafter("test-gen"){{
-            requirements(Category.crafting, with(Items.graphite, 15, Items.copper, 10));
-        }};
         universalCollectorUnits = new AnimatedUnitAssembler("universal-collector-units"){{
             requirements(Category.units, with(Items.graphite, 15, Items.copper, 10));
             size = 6;
@@ -791,7 +790,6 @@ public class trsBlocks {
             requirements(Category.turret, with(Items.copper, 1));
             size = 4;
             inaccuracy = 2;
-            shootSound = Sounds.respawn;
 
             ammo(
                     trsItems.steel, new BasicBulletType(13f,100){{
@@ -820,7 +818,6 @@ public class trsBlocks {
                             colors = new Color[]{Color.valueOf("D8CAE2FF"), Color.valueOf("D8CAE2FF")};
                             length = 50f;
                             width = 10f;
-                            despawnSound = hitSound = Sounds.malignShoot;
                         }};
                     }}
             );
@@ -921,7 +918,7 @@ public class trsBlocks {
             size = 2;
         }};
         carbonBiomassReactor = new ConsumeGenerator("carbon-biomass-reactor"){{
-            requirements(Category.turret, with(Items.copper,1));
+            requirements(Category.power, with(Items.copper,1));
             size = 5;
 
             powerProduction = 100f;
@@ -935,9 +932,19 @@ public class trsBlocks {
                 sides  =10;
                 spread = 10f;
             }},new DrawDefault());
-        }};
+            }
+        };
+        zincGenerator = new ConsumeGenerator("zinc-generator") {{
+            
+                requirements(Category.power, with(Items.copper, 1));
+                size = 3;
 
-        if (OS.isWindows) {
+                powerProduction = 100f;
+                itemDuration = 90f;
+                consumeItems(with(trsItems.carbonDust, 1));
+            }};
+
+        if (debug) {
             // Создание 256 colider блоков с названиями colider-0000001 до colider-0000256
             for (int i = 0; i < 256; i++) {
                 String blockName = String.format("colider-%07d", i + 1);

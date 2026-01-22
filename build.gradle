@@ -20,7 +20,7 @@ java{
 
 ext{
     //the build number that this mod is made for
-    mindustryVersion = 'v151.1'
+    mindustryVersion = 'v154.3'
     jabelVersion = "93fde537c7"
     //windows sucks
     isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
@@ -40,6 +40,11 @@ spotless{
         importOrder()
         target 'src/**/*.java'
     }
+}
+
+// гарантируем форматирование перед сборкой модификации
+tasks.named("build"){
+    dependsOn "spotlessApply"
 }
 
 dependencies{
@@ -109,3 +114,13 @@ task deploy(type: Jar){
         }
     }
 }
+
+def mindustryModsDir = "O:/SteamLibrary/steamapps/common/Mindustry/saves/mods"
+
+task copyModJar(type: Copy) {
+    from("$buildDir/libs")
+    into(mindustryModsDir)
+    include("*.jar")
+}
+
+build.finalizedBy(copyModJar)

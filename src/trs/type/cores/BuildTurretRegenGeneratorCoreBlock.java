@@ -178,8 +178,8 @@ public class BuildTurretRegenGeneratorCoreBlock extends CoreBlock{
                             Strings.fixed(entity.getPowerProduction() * 60 * entity.timeScale(), 1)),
                     () -> Pal.powerBar,
                     () -> entity.productionEfficiency));
+            }
         }
-}
     }
     @Override
     public void drawPlace(int x, int y, int rotation, boolean valid){
@@ -405,8 +405,8 @@ public class BuildTurretRegenGeneratorCoreBlock extends CoreBlock{
             if(efficiency > 0){
                 unit.drawBuilding();
             }
-            circles(x,y,buildRange, Pal.accent.a(0.25f));
-            circles(x,y,range(), Pal.heal.a(0.25f));
+            //circles(x,y,buildRange, Pal.accent.a(0.25f));
+            //circles(x,y,range(), Pal.heal.a(0.25f));
         }
         public void circles(float x, float y, float rad, Color color){
             Lines.stroke(4f, color);

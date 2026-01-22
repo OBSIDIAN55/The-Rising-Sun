@@ -21,7 +21,6 @@ import mindustry.entities.bullet.BulletType;
 import mindustry.entities.bullet.ExplosionBulletType;
 import mindustry.entities.effect.MultiEffect;
 import mindustry.entities.effect.WaveEffect;
-import mindustry.gen.Sounds;
 import mindustry.graphics.Drawf;
 import mindustry.graphics.Layer;
 import mindustry.graphics.Pal;
@@ -60,7 +59,6 @@ public class TrsBulletTypes {
             backColor = hitColor = trailColor = Color.valueOf("#e15f55");
             frontColor = Color.white;
             ammoMultiplier = 1f;
-            hitSound = Sounds.titanExplosion;
 
             status = StatusEffects.blasted;
 
@@ -124,7 +122,6 @@ public class TrsBulletTypes {
             scaledSplashDamage = true;
             hitColor = trailColor = Color.blue;
             ammoMultiplier = 1f;
-            hitSound = Sounds.titanExplosion;
 
 
             status = StatusEffects.blasted;
@@ -148,7 +145,6 @@ public class TrsBulletTypes {
                     shootOnDeath = true;
                     bullet = new ExplosionBulletType(3240,25){{
                         hitShake = 6f;
-                        hitSound = despawnSound = Sounds.explosionbig;
                         hitEffect = despawnEffect =new MultiEffect( new Effect(30, 500f, b -> {
                             float intensity = 6.8f;
                             float baseLifetime = 25f + intensity * 11f;

@@ -2,7 +2,6 @@ package trs.content;
 
 import arc.graphics.Color;
 import mindustry.content.StatusEffects;
-import mindustry.gen.Sounds;
 import mindustry.type.Weather;
 import mindustry.world.meta.Attribute;
 import trs.type.weather.DamageWeather;
@@ -27,7 +26,6 @@ public class trsWeathers {
             status = StatusEffects.wet;
             damage = 40;
 
-            sound = Sounds.windhowl;
             soundVol = 0f;
             soundVolOscMag = 1.5f;
             soundVolOscScl = 1100f;
@@ -47,7 +45,6 @@ public class trsWeathers {
             status = StatusEffects.wet;
             damage = 80;
 
-            sound = Sounds.windhowl;
             soundVol = 0f;
             soundVolOscMag = 1.5f;
             soundVolOscScl = 1100f;
@@ -57,7 +54,6 @@ public class trsWeathers {
             attrs.set(Attribute.light, -0.2f);
             attrs.set(Attribute.water, 0.2f);
             status = StatusEffects.wet;
-            sound = Sounds.rain;
             soundVol = 0.25f;
         }};
     }

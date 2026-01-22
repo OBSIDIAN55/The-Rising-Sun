@@ -21,7 +21,8 @@ import trs.type.construsctors.HealthTrackingTankUnitType;
 
 public class trsUnits {
     public static UnitType
-            disaster,massacre,apocalypse, termination;
+            disaster,massacre,apocalypse, termination,
+            starfall;
     public static void load() {
         massacre = new TankUnitType("massacre"){{
             this.constructor = TankUnit::create;
@@ -147,7 +148,6 @@ public class trsUnits {
                 rotate = true;
                 rotateSpeed = 0.8f;
 
-                shootSound = Sounds.railgun;
 
 
                 bullet = new BasicBulletType(60,20){{
@@ -232,7 +232,7 @@ public class trsUnits {
         termination = new TankUnitType("the-end"){{
             this.constructor = TankUnit::create;
             outlineColor = Color.valueOf("332C2CFF");
-            hitSize = 30f;
+            hitSize = 65f;
             treadPullOffset = 1;
             speed = 0.48f;
             health = 22000;
@@ -253,7 +253,6 @@ public class trsUnits {
                 rotate = true;
                 rotateSpeed = 0.8f;
 
-                shootSound = Sounds.mediumCannon;
                 targetAir = false;
                 shake = 4f;
                 reload = 60f * 2.3f;
@@ -292,7 +291,6 @@ public class trsUnits {
                 rotate = true;
                 rotateSpeed = 0.8f;
 
-                shootSound = Sounds.mediumCannon;
                 targetAir = false;
                 shake = 4f;
                 reload = 380f;
@@ -305,6 +303,63 @@ public class trsUnits {
                     under = true;
                     moveY = -8.5f;
                 }});
+
+                bullet = ExacrimExplosionBulletType;
+
+            }});
+        }};
+
+        starfall = new UnitType("starfall"){{
+            this.constructor = MechUnit::create;
+            outlineColor = Color.valueOf("201D26FF");
+            hitSize = 30f;
+            treadPullOffset = 1;
+            speed = 0.48f;
+            health = 22000;
+            armor = 26f;
+            crushDamage = 25f / 5f;
+            rotateSpeed = 0.8f;
+            drawCell = false;
+            
+
+            weapons.add( new Weapon(name+"-weapon"){{
+                rotate = false;
+                mirror = true;
+                x = -28.25f;
+                y = -3f;
+                shootY = 26f;
+                shootX = -3.5f;
+                shootCone = 0f;
+                recoil = 2f;
+                layerOffset = -0.01f;
+
+                targetAir = true;
+                shake = 4f;
+                reload = 5f * 2.3f;
+                minWarmup = 0.85f;
+
+                shootWarmupSpeed = 0.07f;
+
+                //shoot = new ShootAlternate(10f);
+
+                bullet = TerminationBaseBullet;
+            }}, new Weapon(name+"-rail"){{
+                layerOffset = 0.01f;
+                mirror = true;
+                x = -18.25f;
+                y = -13.5f;
+                shootY = 9f;
+                shootX = 0f;
+                recoil = 2f;
+                rotate = true;
+                rotateSpeed = 0.8f;
+
+                targetAir = false;
+                shake = 4f;
+                reload = 10f;
+                minWarmup = 0.97f;
+
+                shootWarmupSpeed = 0.03f;
 
                 bullet = ExacrimExplosionBulletType;
 
